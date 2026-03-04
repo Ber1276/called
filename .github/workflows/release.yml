@@ -1,0 +1,99 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write   # 允许创建 Release 和上传产物
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # 获取完整历史，供 changelog 生成使用
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Restore
+        run: dotnet restore
+
+      # --- framework-dependent 版本（体积小，需目标机安装 .NET 9） ---
+      - name: Publish (framework-dependent)
+        run: |
+          dotnet publish -c Release -r win-x64 --no-self-contained `
+            -p:PublishSingleFile=true `
+            -p:DebugType=none `
+            -o publish/fd
+
+      # --- self-contained 版本（无需安装 .NET 运行时，体积较大） ---
+      - name: Publish (self-contained)
+        run: |
+          dotnet publish -c Release -r win-x64 --self-contained true `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:DebugType=none `
+            -o publish/sc
+
+      # --- 打包 ---
+      - name: Package artifacts
+        run: |
+          $tag = "${{ github.ref_name }}"
+
+          # framework-dependent zip
+          Compress-Archive -Path publish/fd/* `
+            -DestinationPath "CalledAssistant-$tag-win-x64.zip"
+
+          # self-contained zip
+          Compress-Archive -Path publish/sc/* `
+            -DestinationPath "CalledAssistant-$tag-win-x64-selfcontained.zip"
+
+      # --- 自动生成 changelog（基于上一个 tag 的 commit 列表）---
+      - name: Generate changelog
+        id: changelog
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $prev = git describe --tags --abbrev=0 "$tag^" 2>$null
+          if ($LASTEXITCODE -ne 0 -or -not $prev) {
+            $log = git log --pretty=format:"- %s (%h)" | Out-String
+          } else {
+            $log = git log "$prev..$tag" --pretty=format:"- %s (%h)" | Out-String
+          }
+          # 写入多行输出
+          $escaped = $log -replace "`r`n","`n"
+          "changelog<<EOF" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          $escaped | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "EOF" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      # --- 创建 GitHub Release 并上传产物 ---
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "Called Assistant ${{ github.ref_name }}"
+          body: |
+            ## What's Changed
+
+            ${{ steps.changelog.outputs.changelog }}
+
+            ---
+
+            ### 下载说明
+
+            | 文件 | 说明 |
+            |------|------|
+            | `CalledAssistant-*-win-x64.zip` | 需要 [.NET 9 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/9.0) |
+            | `CalledAssistant-*-win-x64-selfcontained.zip` | 无需安装运行时，开箱即用 |
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          files: |
+            CalledAssistant-${{ github.ref_name }}-win-x64.zip
+            CalledAssistant-${{ github.ref_name }}-win-x64-selfcontained.zip

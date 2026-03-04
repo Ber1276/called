@@ -1,0 +1,332 @@
+<Window x:Class="CalledAssistant.Views.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:CalledAssistant.ViewModels"
+        xmlns:models="clr-namespace:CalledAssistant.Models"
+        xmlns:converters="clr-namespace:CalledAssistant.Converters"
+        Title="Called Assistant - 设置"
+        Width="560" Height="660"
+        WindowStyle="SingleBorderWindow"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen"
+        ShowInTaskbar="False">
+
+    <Window.Resources>
+        <SolidColorBrush x:Key="AccentBrush" Color="#4F7EFF"/>
+        <SolidColorBrush x:Key="TextSecBrush" Color="#6B7280"/>
+        <BooleanToVisibilityConverter x:Key="BoolVis"/>
+        <converters:InverseBooleanToVisibilityConverter x:Key="InvBoolVis"/>
+
+        <Style x:Key="GroupHeader" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Margin" Value="0,16,0,8"/>
+        </Style>
+
+        <Style x:Key="Label" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,10,0"/>
+        </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="Padding" Value="6,4"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="BorderBrush" Value="#D1D9F0"/>
+        </Style>
+
+        <Style TargetType="ComboBox">
+            <Setter Property="Padding" Value="6,4"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="16,6"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#3D6AE8"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="TestButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+            <Setter Property="Background" Value="#6B7280"/>
+            <Setter Property="Padding" Value="10,4"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#4B5563"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="Separator" TargetType="Separator">
+            <Setter Property="Margin" Value="0,4"/>
+            <Setter Property="Background" Value="#E5E7EB"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" Padding="24,16,24,0">
+            <StackPanel>
+
+                <!-- ===== 热键 ===== -->
+                <TextBlock Style="{StaticResource GroupHeader}" Text="🔑  全局唤醒热键"/>
+                <Border Background="#F3F4F6" CornerRadius="8" Padding="12,10">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <CheckBox Content="Ctrl" IsChecked="{Binding HotkeyCtrl}" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                            <CheckBox Content="Alt" IsChecked="{Binding HotkeyAlt}"  VerticalAlignment="Center" Margin="0,0,16,0"/>
+                            <CheckBox Content="Shift" IsChecked="{Binding HotkeyShift}" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                            <TextBlock Text="+" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="{StaticResource TextSecBrush}"/>
+                            <Border BorderBrush="#D1D9F0" BorderThickness="1" CornerRadius="4"
+                                    Padding="10,4" Background="White" MinWidth="80"
+                                    x:Name="HotkeyCaptureBorder"
+                                    KeyDown="HotkeyCaptureBorder_KeyDown"
+                                    Focusable="True" Cursor="IBeam">
+                                <TextBlock Text="{Binding HotkeyPreview}" FontSize="13"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="（点击后按键）" VerticalAlignment="Center"
+                                       Foreground="{StaticResource TextSecBrush}" FontSize="11" Margin="8,0,0,0"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- ===== 输入模式 ===== -->
+                <TextBlock Style="{StaticResource GroupHeader}" Text="🎯  默认输入模式"/>
+                <StackPanel Orientation="Horizontal">
+                    <RadioButton Content="语音优先（唤醒即录音）" IsChecked="{Binding InputModeVoice}"
+                                 Margin="0,0,24,0" VerticalAlignment="Center" FontSize="13"/>
+                    <RadioButton Content="文字优先（唤醒显示输入框）" IsChecked="{Binding InputModeText}"
+                                 VerticalAlignment="Center" FontSize="13"/>
+                </StackPanel>
+
+                <Separator Style="{StaticResource Separator}" Margin="0,12"/>
+
+                <!-- ===== STT 设置 ===== -->
+                <TextBlock Style="{StaticResource GroupHeader}" Text="🎤  语音识别 (STT)"/>
+
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                    <RadioButton Content="本地 Whisper（离线）" IsChecked="{Binding SttLocalWhisper}"
+                                 Margin="0,0,24,0" VerticalAlignment="Center" FontSize="13"/>
+                    <RadioButton Content="OpenAI Whisper API（云端）" IsChecked="{Binding SttOpenAi}"
+                                 VerticalAlignment="Center" FontSize="13"/>
+                </StackPanel>
+
+                <!-- 本地 Whisper 设置 -->
+                <Border Visibility="{Binding SttLocalWhisper, Converter={StaticResource BoolVis}}"
+                        Background="#F3F4F6" CornerRadius="8" Padding="12,10" Margin="0,0,0,8">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                            <RowDefinition Height="8"/>
+                            <RowDefinition/>
+                            <RowDefinition Height="8"/>
+                            <RowDefinition/>
+                            <RowDefinition Height="8"/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource Label}" Text="模型大小"/>
+                        <ComboBox Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2"
+                                  ItemsSource="{Binding WhisperModelSizes}"
+                                  SelectedItem="{Binding WhisperModelSize}"/>
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource Label}" Text="模型文件"/>
+                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding WhisperModelPath}"
+                                 IsReadOnly="True"/>
+                        <Button Grid.Row="2" Grid.Column="2" Style="{StaticResource TestButton}"
+                                Content="浏览..." Command="{Binding BrowseModelCommand}" Margin="6,0,0,0"/>
+
+                        <!-- 模型下载区域 -->
+                        <TextBlock Grid.Row="4" Grid.Column="0" Style="{StaticResource Label}" Text="下载模型"/>
+                        <StackPanel Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2">
+                            <!-- 路径提示 -->
+                            <TextBlock Text="{Binding ModelFilePath}" FontSize="11"
+                                       Foreground="{StaticResource TextSecBrush}"
+                                       TextWrapping="Wrap" Margin="0,0,0,4"
+                                       ToolTip="{Binding ModelFilePath}"/>
+                            <!-- 按钮行 -->
+                            <StackPanel Orientation="Horizontal">
+                                <!-- 未下载时显示下载按钮 -->
+                                <Button Style="{StaticResource TestButton}"
+                                        Content="⬇ 下载模型"
+                                        Command="{Binding DownloadModelCommand}"
+                                        Visibility="{Binding IsModelDownloaded, Converter={StaticResource InvBoolVis}}"
+                                        Margin="0,0,6,0"/>
+                                <!-- 已下载时显示重新下载 -->
+                                <Button Style="{StaticResource TestButton}"
+                                        Content="⬇ 重新下载"
+                                        Command="{Binding DownloadModelCommand}"
+                                        Visibility="{Binding IsModelDownloaded, Converter={StaticResource BoolVis}}"
+                                        Margin="0,0,6,0"/>
+                                <Button Style="{StaticResource TestButton}"
+                                        Content="📂 打开目录"
+                                        Command="{Binding OpenModelFolderCommand}"/>
+                            </StackPanel>
+                            <!-- 进度条（下载中显示） -->
+                            <ProgressBar Minimum="0" Maximum="100"
+                                         Value="{Binding DownloadProgress}"
+                                         Height="6" Margin="0,6,0,2"
+                                         Visibility="{Binding IsDownloading, Converter={StaticResource BoolVis}}"/>
+                            <!-- 状态文字 -->
+                            <TextBlock Text="{Binding DownloadStatus}" FontSize="11"
+                                       Foreground="{StaticResource TextSecBrush}"
+                                       Margin="0,2,0,0"/>
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="6" Grid.Column="0" Style="{StaticResource Label}" Text="识别语言"/>
+                        <TextBox Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="2"
+                                 Text="{Binding SttLanguage}"
+                                 ToolTip="zh / en / ja / auto 等"/>
+                    </Grid>
+                </Border>
+
+                <!-- OpenAI Whisper 设置 -->
+                <Border Visibility="{Binding SttOpenAi, Converter={StaticResource BoolVis}}"
+                        Background="#F3F4F6" CornerRadius="8" Padding="12,10" Margin="0,0,0,8">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                            <RowDefinition Height="8"/>
+                            <RowDefinition/>
+                            <RowDefinition Height="8"/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource Label}" Text="API Key"/>
+                        <TextBox Grid.Row="0" Grid.Column="1"
+                                 Text="{Binding SttApiKey, UpdateSourceTrigger=PropertyChanged}"/>
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource Label}" Text="API 端点"/>
+                        <TextBox Grid.Row="2" Grid.Column="1"
+                                 Text="{Binding SttApiEndpoint, UpdateSourceTrigger=PropertyChanged}"/>
+
+                        <TextBlock Grid.Row="4" Grid.Column="0" Style="{StaticResource Label}" Text="识别语言"/>
+                        <TextBox Grid.Row="4" Grid.Column="1"
+                                 Text="{Binding SttLanguage, UpdateSourceTrigger=PropertyChanged}"/>
+                    </Grid>
+                </Border>
+
+                <!-- STT 测试 -->
+                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                    <Button Style="{StaticResource TestButton}" Content="🔗 测试 STT 连接"
+                            Command="{Binding TestSttCommand}"/>
+                    <TextBlock Text="{Binding SttTestResult}" VerticalAlignment="Center"
+                               Margin="12,0,0,0" FontSize="12" Foreground="{StaticResource TextSecBrush}"/>
+                </StackPanel>
+
+                <Separator Style="{StaticResource Separator}" Margin="0,12"/>
+
+                <!-- ===== LLM 设置 ===== -->
+                <TextBlock Style="{StaticResource GroupHeader}" Text="🤖  AI 语言模型 (LLM)"/>
+
+                <Grid Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Style="{StaticResource Label}" Text="提供商"/>
+                    <ComboBox Grid.Column="1"
+                              ItemsSource="{Binding LlmProviders}"
+                              SelectedItem="{Binding LlmProvider}"/>
+                </Grid>
+
+                <Border Background="#F3F4F6" CornerRadius="8" Padding="12,10" Margin="0,0,0,8">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                            <RowDefinition Height="8"/>
+                            <RowDefinition/>
+                            <RowDefinition Height="8"/>
+                            <RowDefinition/>
+                            <RowDefinition Height="8"/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource Label}" Text="Endpoint"/>
+                        <TextBox Grid.Row="0" Grid.Column="1"
+                                 Text="{Binding LlmEndpoint, UpdateSourceTrigger=PropertyChanged}"/>
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource Label}" Text="API Key"/>
+                        <TextBox Grid.Row="2" Grid.Column="1"
+                                 Text="{Binding LlmApiKey, UpdateSourceTrigger=PropertyChanged}"/>
+
+                        <TextBlock Grid.Row="4" Grid.Column="0" Style="{StaticResource Label}" Text="模型名"/>
+                        <TextBox Grid.Row="4" Grid.Column="1"
+                                 Text="{Binding LlmModelName, UpdateSourceTrigger=PropertyChanged}"
+                                 ToolTip="例如：llama3.2 / gpt-4o / claude-3-5-sonnet"/>
+
+                        <TextBlock Grid.Row="6" Grid.Column="0" Style="{StaticResource Label}" Text="系统提示词"/>
+                        <TextBox Grid.Row="6" Grid.Column="1"
+                                 Text="{Binding LlmSystemPrompt, UpdateSourceTrigger=PropertyChanged}"
+                                 AcceptsReturn="True" Height="60"
+                                 VerticalScrollBarVisibility="Auto"/>
+                    </Grid>
+                </Border>
+
+                <!-- LLM 测试 -->
+                <StackPanel Orientation="Horizontal">
+                    <Button Style="{StaticResource TestButton}" Content="🔗 测试 LLM 连接"
+                            Command="{Binding TestLlmCommand}"/>
+                    <TextBlock Text="{Binding LlmTestResult}" VerticalAlignment="Center"
+                               Margin="12,0,0,0" FontSize="12" Foreground="{StaticResource TextSecBrush}"/>
+                </StackPanel>
+
+                <Rectangle Height="16"/>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- 底部保存按钮 -->
+        <Border Grid.Row="1" Background="#F9FAFB" BorderBrush="#E5E7EB" BorderThickness="0,1,0,0"
+                Padding="24,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="设置保存后立即生效" FontSize="12"
+                           Foreground="{StaticResource TextSecBrush}" VerticalAlignment="Center"/>
+                <Button Grid.Column="1" Style="{StaticResource TestButton}" Content="取消"
+                        Click="CancelButton_Click" Margin="0,0,8,0"/>
+                <Button Grid.Column="2" Style="{StaticResource PrimaryButton}" Content="保存设置"
+                        Command="{Binding SaveCommand}" Click="SaveButton_Click"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

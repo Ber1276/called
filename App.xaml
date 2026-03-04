@@ -1,0 +1,20 @@
+﻿<Application x:Class="CalledAssistant.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:tb="http://www.hardcodet.net/taskbar">
+    <!-- 不设置 StartupUri，完全由 App.xaml.cs 控制生命周期 -->
+    <Application.Resources>
+        <ResourceDictionary>
+            <tb:TaskbarIcon x:Key="TrayIcon"
+                            ToolTipText="Called Assistant - 按 Alt+Space 唤醒">
+                <tb:TaskbarIcon.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="设置(_S)" Click="MenuSettings_Click"/>
+                        <Separator/>
+                        <MenuItem Header="退出(_X)" Click="MenuExit_Click"/>
+                    </ContextMenu>
+                </tb:TaskbarIcon.ContextMenu>
+            </tb:TaskbarIcon>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
