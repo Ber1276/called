@@ -6,6 +6,7 @@
     <Application.Resources>
         <ResourceDictionary>
             <tb:TaskbarIcon x:Key="TrayIcon"
+                            IconSource="/Assets/Icons/tray.ico"
                             ToolTipText="Called Assistant - 按 Alt+Space 唤醒">
                 <tb:TaskbarIcon.ContextMenu>
                     <ContextMenu>
