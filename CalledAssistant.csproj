@@ -10,6 +10,11 @@
     <ApplicationIcon>Assets\Icons\tray.ico</ApplicationIcon>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <!-- 确保原生库（whisper.dll / ggml.dll）随发布目录一起输出 -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="2.0.1" />
     <PackageReference Include="NAudio" Version="2.2.1" />
